@@ -111,18 +111,18 @@ function generateconnectcert() {
   -newkey rsa:2048 \
   -keyout connect_certs/connect.key \
   -out connect_certs/connect.csr \
-  -config connect_certs/connect.cnf \
+  -config connect_certs/connect_cert.cnf \
   -nodes
 
   # sign with CA
   openssl x509 -req \
   -days 3650 \
-  -in connect_certs/kafka.csr \
+  -in connect_certs/connect.csr \
   -CA certs/root-ca.crt \
   -CAkey certs/root-ca.key \
   -CAcreateserial \
   -out connect_certs/connect.crt \
-  -extfile connect_certs/connect.cnf \
+  -extfile connect_certs/connect_cert.cnf \
   -extensions kafka-connect
 
   # Convert server certificate to pkcs12 format

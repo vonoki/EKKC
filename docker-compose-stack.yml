@@ -102,14 +102,18 @@ services:
       CONNECT_SSL_KEYSTORE_LOCATION: /connect_certs/connect.keystore.jks
       CONNECT_SSL_KEYSTORE_PASSWORD: /connect_certs/keystore_cred
       CONNECT_SSL_KEY_PASSWORD: /connect_certs/key_cred
+      KAFKA_SSL_KEYSTORE_TYPE: PKCS12
       CONNECT_SSL_TRUSTSTORE_LOCATION: /connect_certs/connect.truststore.jks
       CONNECT_SSL_TRUSTSTORE_PASSWORD: /connect_certs/truststore_cred
+      KAFKA_SSL_TRUSTSTORE_TYPE: PKCS12
       CONNECT_CONSUMER_SECURITY_PROTOCOL: SSL
       CONNECT_CONSUMER_SSL_KEYSTORE_LOCATION: /connect_certs/connect.keystore.jks
       CONNECT_CONSUMER_SSL_KEYSTORE_PASSWORD: /connect_certs/keystore_cred
       CONNECT_CONSUMER_SSL_KEY_PASSWORD: /connect_certs/key_cred
+      CONNECT_SSL_KEYSTORE_TYPE: PKCS12
       CONNECT_CONSUMER_SSL_TRUSTSTORE_LOCATION: /connect_certs/connect.truststore.jks
       CONNECT_CONSUMER_SSL_TRUSTSTORE_PASSWORD: /connect_certs/truststore_cred
+      CONNECT_SSL_TRUSTSTORE_TYPE: PKCS12
     volumes:
       - type: bind
         source: /opt/EKK/connect-plugins

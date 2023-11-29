@@ -17,7 +17,7 @@ basicConstraints = critical,CA:true
 authorityKeyIdentifier=keyid:always,issuer:always
 keyUsage = critical,keyCertSign,cRLSign
 
-[ kafka ]
+[ kafka-connect ]
 subjectKeyIdentifier = hash
 basicConstraints = CA:FALSE
 nsComment = "OpenSSL Generated Certificate"
