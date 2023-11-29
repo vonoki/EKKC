@@ -17,7 +17,7 @@ x509_extensions = ekk_root_ca
 countryName = UA
 organizationName = Digital
 localityName = Hyphy
-commonName = ekk
+commonName = vonok1
 
 [ ekk_root_ca ]
 subjectKeyIdentifier=hash

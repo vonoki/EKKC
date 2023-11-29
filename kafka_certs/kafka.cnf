@@ -9,7 +9,7 @@ req_extensions = kafka
 countryName = UA
 organizationName = Digital
 localityName = Hyphy
-commonName=kafka
+commonName= kafka
 
 [ ekk_root_ca ]
 subjectKeyIdentifier=hash
