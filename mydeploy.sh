@@ -7,48 +7,6 @@ function generateCA() {
   cat certs/root-ca.crt certs/root-ca.key > certs/root-ca.pem
 }
 
-function generateelasticcert() {
-
-  openssl genrsa -out certs/elasticsearch.key
-
-  openssl req -new -key certs/elasticsearch.key -out certs/elasticsearch.csr -subj "$CERT_STRING/CN=elasticsearch"
-
-  {
-    echo "[elasticsearch]"
-    echo "authorityKeyIdentifier=keyid,issuer"
-    echo "basicConstraints = critical,CA:FALSE"
-    echo "extendedKeyUsage=serverAuth,clientAuth"
-    echo "keyUsage = critical, digitalSignature, keyEncipherment"
-    #echo "subjectAltName = DNS:elasticsearch, IP:127.0.0.1"
-    echo "subjectAltName = DNS:elasticsearch, IP:127.0.0.1, DNS:$logstashcn, IP: $logstaship"
-    echo "subjectKeyIdentifier=hash"
-  } >certs/elasticsearch.cnf
-
-  openssl x509 -req -days 750 -in certs/elasticsearch.csr -CA certs/root-ca.crt -CAkey certs/root-ca.key -CAcreateserial -out certs/elasticsearch.crt -extfile certs/elasticsearch.cnf -extensions elasticsearch
-  mv certs/elasticsearch.key certs/elasticsearch.key.pem && openssl pkcs8 -in certs/elasticsearch.key.pem -topk8 -nocrypt -out certs/elasticsearch.key
-}
-
-function generatekibanacert() {
-
-  openssl genrsa -out certs/kibana.key
-
-  openssl req -new -key certs/kibana.key -out certs/kibana.csr -subj "$CERT_STRING/CN=kibana"
-
-  {
-    echo "[kibana]"
-    echo "authorityKeyIdentifier=keyid,issuer"
-    echo "basicConstraints = critical,CA:FALSE"
-    echo "extendedKeyUsage=serverAuth"
-    echo "keyUsage = critical, digitalSignature, keyEncipherment"
-    #echo "subjectAltName = DNS:$logstashcn, IP: $logstaship"
-    echo "subjectAltName = DNS:kibana, IP:127.0.0.1, DNS:$logstashcn, IP: $logstaship"
-    echo "subjectKeyIdentifier=hash"
-  } >certs/kibana.cnf
-
-  openssl x509 -req -days 750 -in certs/kibana.csr -CA certs/root-ca.crt -CAkey certs/root-ca.key -CAcreateserial -out certs/kibana.crt -extfile certs/kibana.cnf -extensions kibana
-  mv certs/kibana.key certs/kibana.key.pem && openssl pkcs8 -in certs/kibana.key.pem -topk8 -nocrypt -out certs/kibana.key
-}
-
 function generatekafkacert() {
 
   # create server key & csr
@@ -91,7 +49,7 @@ function generatekafkacert() {
   -srcstorepass changeit
 
   keytool -keystore kafka_certs/kafka.truststore.pkcs12 \
-  -alias CARoot \
+  -alias ekk_root_ca \
   -import \
   -file certs/root-ca.crt \
   -storepass changeit  \
@@ -146,7 +104,7 @@ function generateconnectcert() {
   -srcstorepass changeit
 
   keytool -keystore connect_certs/connect.truststore.pkcs12 \
-  -alias CARoot \
+  -alias ekk_root_ca \
   -import \
   -file certs/root-ca.crt \
   -storepass changeit  \
@@ -158,6 +116,48 @@ function generateconnectcert() {
   echo "changeit" > connect_certs/keystore_cred
   echo "changeit" > connect_certs/truststore_cred
 
+}
+
+function generateelasticcert() {
+
+  openssl genrsa -out certs/elasticsearch.key
+
+  openssl req -new -key certs/elasticsearch.key -out certs/elasticsearch.csr -subj "$CERT_STRING/CN=elasticsearch"
+
+  {
+    echo "[elasticsearch]"
+    echo "authorityKeyIdentifier=keyid,issuer"
+    echo "basicConstraints = critical,CA:FALSE"
+    echo "extendedKeyUsage=serverAuth,clientAuth"
+    echo "keyUsage = critical, digitalSignature, keyEncipherment"
+    #echo "subjectAltName = DNS:elasticsearch, IP:127.0.0.1"
+    echo "subjectAltName = DNS:elasticsearch, IP:127.0.0.1, DNS:$logstashcn, IP: $logstaship"
+    echo "subjectKeyIdentifier=hash"
+  } >certs/elasticsearch.cnf
+
+  openssl x509 -req -days 750 -in certs/elasticsearch.csr -CA certs/root-ca.crt -CAkey certs/root-ca.key -CAcreateserial -out certs/elasticsearch.crt -extfile certs/elasticsearch.cnf -extensions elasticsearch
+  mv certs/elasticsearch.key certs/elasticsearch.key.pem && openssl pkcs8 -in certs/elasticsearch.key.pem -topk8 -nocrypt -out certs/elasticsearch.key
+}
+
+function generatekibanacert() {
+
+  openssl genrsa -out certs/kibana.key
+
+  openssl req -new -key certs/kibana.key -out certs/kibana.csr -subj "$CERT_STRING/CN=kibana"
+
+  {
+    echo "[kibana]"
+    echo "authorityKeyIdentifier=keyid,issuer"
+    echo "basicConstraints = critical,CA:FALSE"
+    echo "extendedKeyUsage=serverAuth"
+    echo "keyUsage = critical, digitalSignature, keyEncipherment"
+    #echo "subjectAltName = DNS:$logstashcn, IP: $logstaship"
+    echo "subjectAltName = DNS:kibana, IP:127.0.0.1, DNS:$logstashcn, IP: $logstaship"
+    echo "subjectKeyIdentifier=hash"
+  } >certs/kibana.cnf
+
+  openssl x509 -req -days 750 -in certs/kibana.csr -CA certs/root-ca.crt -CAkey certs/root-ca.key -CAcreateserial -out certs/kibana.crt -extfile certs/kibana.cnf -extensions kibana
+  mv certs/kibana.key certs/kibana.key.pem && openssl pkcs8 -in certs/kibana.key.pem -topk8 -nocrypt -out certs/kibana.key
 }
 
 function generatepasswords() {
@@ -286,10 +286,11 @@ function install() {
 
   #make certs
   generateCA
-  generateelasticcert
-  generatekibanacert
   generatekafkacert
   generateconnectcert
+  generateelasticcert
+  generatekibanacert
+  #change later
   sudo chmod -R 777 /opt/EKK/connect-plugins
   sudo chmod -R 777 /opt/EKK/connect_certs
   sudo chmod -R 777 /opt/EKK/kafka_certs

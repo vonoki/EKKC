@@ -70,6 +70,8 @@ services:
     image: confluentinc/cp-kafka-connect:7.5.1
     hostname: kafka-connect
     container_name: kafka-connect
+    depends_on:
+      - kafka
     environment:
       CONNECT_BOOTSTRAP_SERVERS: kafka:9092
       CONNECT_REST_PORT: 8083
@@ -99,19 +101,19 @@ services:
       #CONNECT_CONNECTIONS_MAX_IDLE_MS: 5400000
       CONNECT_PLUGIN_PATH: /connect-plugins
       CONNECT_SECURITY_PROTOCOL: SSL
-      CONNECT_SSL_KEYSTORE_LOCATION: /connect_certs/connect.keystore.jks
+      CONNECT_SSL_KEYSTORE_LOCATION: /connect_certs/connect.keystore.pkcs12 
       CONNECT_SSL_KEYSTORE_PASSWORD: /connect_certs/keystore_cred
       CONNECT_SSL_KEY_PASSWORD: /connect_certs/key_cred
       KAFKA_SSL_KEYSTORE_TYPE: PKCS12
-      CONNECT_SSL_TRUSTSTORE_LOCATION: /connect_certs/connect.truststore.jks
+      CONNECT_SSL_TRUSTSTORE_LOCATION: /connect_certs/connect.truststore.pkcs12 
       CONNECT_SSL_TRUSTSTORE_PASSWORD: /connect_certs/truststore_cred
       KAFKA_SSL_TRUSTSTORE_TYPE: PKCS12
       CONNECT_CONSUMER_SECURITY_PROTOCOL: SSL
-      CONNECT_CONSUMER_SSL_KEYSTORE_LOCATION: /connect_certs/connect.keystore.jks
+      CONNECT_CONSUMER_SSL_KEYSTORE_LOCATION: /connect_certs/connect.keystore.pkcs12 
       CONNECT_CONSUMER_SSL_KEYSTORE_PASSWORD: /connect_certs/keystore_cred
       CONNECT_CONSUMER_SSL_KEY_PASSWORD: /connect_certs/key_cred
       CONNECT_SSL_KEYSTORE_TYPE: PKCS12
-      CONNECT_CONSUMER_SSL_TRUSTSTORE_LOCATION: /connect_certs/connect.truststore.jks
+      CONNECT_CONSUMER_SSL_TRUSTSTORE_LOCATION: /connect_certs/connect.truststore.pkcs12 
       CONNECT_CONSUMER_SSL_TRUSTSTORE_PASSWORD: /connect_certs/truststore_cred
       CONNECT_SSL_TRUSTSTORE_TYPE: PKCS12
     volumes:
@@ -127,8 +129,6 @@ services:
           - kafka-connect
     ports:
       - 8083:8083
-    depends_on:
-      - kafka
     
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.10.2
