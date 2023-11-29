@@ -110,11 +110,6 @@ function generateconnectcert() {
   -storepass changeit  \
   -noprompt \
   -storetype PKCS12
-  
-  # save creds
-  echo "changeit" > connect_certs/key_cred
-  echo "changeit" > connect_certs/keystore_cred
-  echo "changeit" > connect_certs/truststore_cred
 
 }
 
@@ -187,8 +182,6 @@ function configuredocker() {
 
 function deploylme() {
 
-  docker volume create --name zoo_data > /dev/null
-  docker volume create --name zoo_log > /dev/null
   docker volume create --name kafka_data > /dev/null
   docker volume create --name esdata > /dev/null
 
