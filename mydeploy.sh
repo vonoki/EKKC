@@ -106,31 +106,57 @@ function generatekafkacert() {
 
 function generateconnectcert() {
 
-  mkdir -p connect_certs
+  # create server key & csr
+  openssl req -new \
+  -newkey rsa:2048 \
+  -keyout connect_certs/connect.key \
+  -out connect_certs/connect.csr \
+  -config connect_certs/connect.cnf \
+  -nodes
 
-  openssl genrsa -out connect_certs/connect.key
+  # sign with CA
+  openssl x509 -req \
+  -days 3650 \
+  -in connect_certs/kafka.csr \
+  -CA certs/root-ca.crt \
+  -CAkey certs/root-ca.key \
+  -CAcreateserial \
+  -out connect_certs/connect.crt \
+  -extfile connect_certs/connect.cnf \
+  -extensions kafka-connect
 
-  openssl req -new -key connect_certs/connect.key -out connect_certs/connect.csr -subj "$CERT_STRING/CN=kafka-connect"
+  # Convert server certificate to pkcs12 format
+  openssl pkcs12 -export \
+  -in connect_certs/connect.crt \
+  -inkey connect_certs/connect.key \
+  -chain \
+  -CAfile certs/root-ca.pem \
+  -name kafka-connect \
+  -out connect_certs/connect.p12 \
+  -password pass:changeit
 
-  {
-    echo "[kafka-connect]"
-    echo "authorityKeyIdentifier=keyid,issuer"
-    echo "basicConstraints = critical,CA:FALSE"
-    echo "extendedKeyUsage=serverAuth,clientAuth"
-    echo "keyUsage = critical, digitalSignature, keyEncipherment"
-    #echo "subjectAltName = DNS:kafka-connect, IP:127.0.0.1"
-    echo "subjectAltName = DNS:kafka-connect, IP:127.0.0.1, DNS:$logstashcn, IP: $logstaship"
-    echo "subjectKeyIdentifier=hash"
-  } >connect_certs/connect.cnf
+  # Create server keystore
+  keytool -importkeystore \
+  -deststorepass changeit \
+  -destkeystore connect_certs/connect.keystore.pkcs12 \
+  -srckeystore connect_certs/connect.p12 \
+  -deststoretype PKCS12  \
+  -srcstoretype PKCS12 \
+  -noprompt \
+  -srcstorepass changeit
 
-  openssl x509 -req -days 750 -in connect_certs/connect.csr -CA certs/root-ca.crt -CAkey certs/root-ca.key -CAcreateserial -out connect_certs/connect.crt -extfile connect_certs/connect.cnf -extensions kafka-connect
-  #mv connect_certs/connect.key connect_certs/connect.key.pem && openssl pkcs8 -in connect_certs/connect.key.pem -topk8 -nocrypt -out connect_certs/connect.key
-
-  keytool -keystore connect_certs/connect.truststore.jks -import -file certs/root-ca.crt -alias ekk_root_ca -storepass changeit -noprompt
+  keytool -keystore connect_certs/connect.truststore.pkcs12 \
+  -alias CARoot \
+  -import \
+  -file certs/root-ca.crt \
+  -storepass changeit  \
+  -noprompt \
+  -storetype PKCS12
   
-  openssl pkcs12 -export -out connect_certs/connect.p12 -in connect_certs/connect.crt -inkey connect_certs/connect.key
-
-  keytool -destkeystore connect_certs/connect.keystore.jks -importkeystore -srckeystore connect_certs/connect.p12 -srcstoretype PKCS12
+  # save creds
+  echo "changeit" > connect_certs/key_cred
+  echo "changeit" > connect_certs/keystore_cred
+  echo "changeit" > connect_certs/truststore_cred
 
 }
 
@@ -160,6 +186,12 @@ function configuredocker() {
 
 
 function deploylme() {
+
+  docker volume create --name zoo_data > /dev/null
+  docker volume create --name zoo_log > /dev/null
+  docker volume create --name kafka_data > /dev/null
+  docker volume create --name esdata > /dev/null
+
   docker compose up -d
 }
 
@@ -262,8 +294,10 @@ function install() {
   sudo chmod -R 777 /opt/EKK/connect_certs
   sudo chmod -R 777 /opt/EKK/kafka_certs
   sudo chmod -R 777 /opt/EKK/certs
-  mkdir -p kafka_data
-  sudo chmod -R 777 /opt/EKK/kafka_data
+  #sudo chown -R 777 /opt/EKK/kafka_data
+  #sudo chown -R 777 /opt/EKK/zoo_data
+  #sudo chown -R 777 /opt/EKK/zoo_log
+  #sudo chown -R 777 /opt/EKK/esdata
 
   generatepasswords
   configuredocker

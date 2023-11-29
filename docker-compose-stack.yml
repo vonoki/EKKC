@@ -2,28 +2,45 @@ version: '3.9'
 
 services:
 
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.1
+    hostname: zookeeper
+    networks:
+      - esnet
+    ports:
+      - 2181:2181
+    environment:
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_LOG4J_ROOT_LOGLEVEL: ERROR
+      ZOOKEEPER_LOG4J_LOGLEVEL: ERROR
+    volumes:
+      - type: volume
+        source: zoo_data
+        target: /var/lib/zookeeper/data
+      - type: volume
+        source: zoo_log
+        target: /var/lib/zookeeper/log
+
   kafka:
     image: confluentinc/cp-kafka:7.5.1
     hostname: kafka
     container_name: kafka
+    depends_on:
+      - zookeeper
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_NODE_ID: 1
-      CLUSTER_ID: krvJhsSK683B_BWI0KVU1Q
-      KAFKA_ENABLE_KRAFT: 'yes'
-      KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_LISTENERS: CONTROLLER://kafka:9093,INSIDE://kafka:9092,OUTSIDE://0.0.0.0:29092
-      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9092,OUTSIDE://vonok1:29092
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,INSIDE:SSL,OUTSIDE:SSL
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENERS: INSIDE://kafka:9092,OUTSIDE://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9092,OUTSIDE://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:SSL,OUTSIDE:SSL
       KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
-      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1 
-      KAFKA_JMX_PORT: 9101
-      KAFKA_JMX_HOSTNAME: vonok1
       KAFKA_SECURITY_PROTOCOL: SSL
       KAFKA_SSL_KEYSTORE_FILENAME: kafka.keystore.pkcs12
       KAFKA_SSL_KEYSTORE_CREDENTIALS: keystore_cred
@@ -32,10 +49,13 @@ services:
       KAFKA_SSL_TRUSTSTORE_FILENAME: kafka.truststore.pkcs12
       KAFKA_SSL_TRUSTSTORE_CREDENTIALS: truststore_cred
       KAFKA_SSL_TRUSTSTORE_TYPE: PKCS12
-      KAFKA_SSL_CLIENT_AUTH: required
-      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: ""
+      KAFKA_SSL_CLIENT_AUTH: requested
+      KAFKA_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: " "
+      KAFKA_LISTENER_NAME_INTERNAL_SSL_ENDPOINT_IDENTIFICATION_ALGORITHM: " "
     networks:
-      - esnet
+      esnet:
+        aliases:
+          - kafka
     volumes:
       - type: volume
         source: kafka_data
@@ -80,16 +100,16 @@ services:
       CONNECT_PLUGIN_PATH: /connect-plugins
       CONNECT_SECURITY_PROTOCOL: SSL
       CONNECT_SSL_KEYSTORE_LOCATION: /connect_certs/connect.keystore.jks
-      CONNECT_SSL_KEYSTORE_PASSWORD: changeit
-      CONNECT_SSL_KEY_PASSWORD: changeit
+      CONNECT_SSL_KEYSTORE_PASSWORD: /connect_certs/keystore_cred
+      CONNECT_SSL_KEY_PASSWORD: /connect_certs/key_cred
       CONNECT_SSL_TRUSTSTORE_LOCATION: /connect_certs/connect.truststore.jks
-      CONNECT_SSL_TRUSTSTORE_PASSWORD: changeit
+      CONNECT_SSL_TRUSTSTORE_PASSWORD: /connect_certs/truststore_cred
       CONNECT_CONSUMER_SECURITY_PROTOCOL: SSL
       CONNECT_CONSUMER_SSL_KEYSTORE_LOCATION: /connect_certs/connect.keystore.jks
-      CONNECT_CONSUMER_SSL_KEYSTORE_PASSWORD: changeit
-      CONNECT_CONSUMER_SSL_KEY_PASSWORD: changeit
+      CONNECT_CONSUMER_SSL_KEYSTORE_PASSWORD: /connect_certs/keystore_cred
+      CONNECT_CONSUMER_SSL_KEY_PASSWORD: /connect_certs/key_cred
       CONNECT_CONSUMER_SSL_TRUSTSTORE_LOCATION: /connect_certs/connect.truststore.jks
-      CONNECT_CONSUMER_SSL_TRUSTSTORE_PASSWORD: changeit
+      CONNECT_CONSUMER_SSL_TRUSTSTORE_PASSWORD: /connect_certs/truststore_cred
     volumes:
       - type: bind
         source: /opt/EKK/connect-plugins
@@ -98,7 +118,9 @@ services:
         source: /opt/EKK/connect_certs
         target: /connect_certs
     networks:
-      - esnet
+      esnet:
+        aliases:
+          - kafka-connect
     ports:
       - 8083:8083
     depends_on:
@@ -145,7 +167,9 @@ services:
         source: /opt/EKK/certs
         target: /usr/share/elasticsearch/config/certificates    
     networks:
-      - esnet
+      esnet:
+        aliases:
+          - elasticsearch
     ports:
       - 9200:9200
     ulimits:
@@ -187,7 +211,9 @@ services:
         source: /opt/EKK/certs
         target: /usr/share/kibana/certificates
     networks:
-      - esnet
+      esnet:
+        aliases:
+          - kibana
     ports:
       - 443:5601
     healthcheck:
@@ -202,9 +228,13 @@ services:
 
 volumes:
   esdata:
-    driver: local
+    external: true
   kafka_data:
-    driver: local  
+    external: true
+  zoo_data:
+    external: true
+  zoo_log:
+    external: true
 
 networks:
   esnet:
