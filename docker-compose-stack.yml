@@ -102,7 +102,7 @@ services:
       CONNECT_PLUGIN_PATH: /connect-plugins
       CONNECT_SECURITY_PROTOCOL: SSL
       CONNECT_SSL_KEYSTORE_LOCATION: /connect_certs/connect.keystore.pkcs12 
-      CONNECT_SSL_KEYSTORE_PASSWORD: /connect_certs/keystore_cred
+      CONNECT_SSL_KEYSTORE_PASSWORD: changeit
       CONNECT_SSL_KEY_PASSWORD: /connect_certs/key_cred
       KAFKA_SSL_KEYSTORE_TYPE: PKCS12
       CONNECT_SSL_TRUSTSTORE_LOCATION: /connect_certs/connect.truststore.pkcs12 

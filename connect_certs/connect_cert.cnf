@@ -3,7 +3,7 @@ prompt = no
 distinguished_name = dn
 default_md = sha256
 default_bits = 4096
-req_extensions = kafka-connect
+req_extensions = v3_req
 
 [ dn ]
 countryName = UA
@@ -11,13 +11,13 @@ organizationName = Digital
 localityName = Hyphy
 commonName= kafka-connect
 
-[ ekk_root_ca ]
+[ v3_ca ]
 subjectKeyIdentifier=hash
 basicConstraints = critical,CA:true
 authorityKeyIdentifier=keyid:always,issuer:always
 keyUsage = critical,keyCertSign,cRLSign
 
-[ kafka-connect ]
+[ v3_req ]
 subjectKeyIdentifier = hash
 basicConstraints = CA:FALSE
 nsComment = "OpenSSL Generated Certificate"

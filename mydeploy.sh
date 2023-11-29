@@ -26,7 +26,7 @@ function generatekafkacert() {
   -CAcreateserial \
   -out kafka_certs/kafka.crt \
   -extfile kafka_certs/kafka.cnf \
-  -extensions kafka
+  -extensions v3_req
 
   # Convert server certificate to pkcs12 format
   openssl pkcs12 -export \
@@ -81,7 +81,7 @@ function generateconnectcert() {
   -CAcreateserial \
   -out connect_certs/connect.crt \
   -extfile connect_certs/connect_cert.cnf \
-  -extensions kafka-connect
+  -extensions v3_req
 
   # Convert server certificate to pkcs12 format
   openssl pkcs12 -export \
