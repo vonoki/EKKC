@@ -290,6 +290,22 @@ function install() {
   echo ""
 }
 
+function uninstall() {
+  echo -e "Clear all?"
+  read -e -p "Proceed ([y]es/[n]o):" -i "n" check
+  if [ "$check" == "n" ]; then
+    return
+  elif [ "$check" == "y" ];then
+    docker compose down
+    docker volume prune -a -f
+    cd .. && rm -r EKK 
+    echo -e "\e[33m[!]\e[0m - Done"
+    return
+  else
+    echo -e "\e[33m[!]\e[0m ONLY PROVIDE y or n"
+  fi
+}
+
 ############
 #START HERE#
 ############
@@ -313,4 +329,6 @@ cd "$DIR" || exit
 
 if [ "$1" == "install" ]; then
   install
+elif [ "$1" == "uninstall" ]; then
+  uninstall
 fi
