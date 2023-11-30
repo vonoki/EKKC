@@ -244,13 +244,13 @@ curl -X POST https://localhost:8083/connectors -H 'Content-Type: application/jso
     "connection.username": "es_sink_connector",
     "connection.password": "'"$es_sink_connector_pass"'",
     "elastic.security.protocol": "SSL",
-    "elastic.https.ssl.keystore.location": "sink_certs/connect_keystore.jks",
+    "elastic.https.ssl.keystore.location": "connect_certs/connect.keystore.pkcs12 ",
     "elastic.https.ssl.keystore.password": "changeit",
-    "elastic.https.ssl.keystore.type": "JKS", 
+    "elastic.https.ssl.keystore.type": "PKCS12", 
     "elastic.https.ssl.key.password": "changeit",
-    "elastic.https.ssl.truststore.location": "sink_certs/connect_truststore.jks",
+    "elastic.https.ssl.truststore.location": "connect_certs/connect.truststore.pkcs12 ",
     "elastic.https.ssl.truststore.password": "changeit",
-    "elastic.https.ssl.truststore.type": "JKS",
+    "elastic.https.ssl.truststore.type": "PKCS12",
     "elastic.https.ssl.protocol": "TLS"
   }
 }'
